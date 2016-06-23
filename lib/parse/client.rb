@@ -204,7 +204,6 @@ module Parse
     end
 
     def client
-      raise ParseError, 'API not initialized' unless @@client
       @@client
     end
 
