@@ -175,7 +175,7 @@ module Parse
         defaults[:master_key] = ENV['PARSE_MASTER_API_KEY']
       end
 
-      Client.new(defaults, &blk)
+      @@client = Client.new(defaults, &blk)
     end
 
     # DEPRECATED: Please use create instead.
