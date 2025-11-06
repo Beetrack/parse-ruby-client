@@ -1,10 +1,19 @@
 # encoding: utf-8
 module Faraday
   # A middleware to display error messages in the JSON response
-  class ExtendedParseJson < FaradayMiddleware::ParseJson
-    def process_response(env)
-      env[:raw_body] = env[:body] if preserve_raw?(env)
+  class ExtendedParseJson < Faraday::Middleware
+    def initialize(app, options = {})
+      super(app)
+      @options = options
+    end
 
+    def call(env)
+      @app.call(env).on_complete do |response_env|
+        process_response(response_env)
+      end
+    end
+
+    def process_response(env)
       if env[:status] >= 400
         begin
           data = parse(env[:body]) || {}
@@ -39,6 +48,13 @@ module Faraday
       #  so it won't be sent to the server
       retries = env.request_headers.delete('X-ParseRubyClient-Retries')
       (retries.to_i.zero? ? Parse::ParseProtocolError : Parse::ParseProtocolRetry)
+    end
+
+    def parse(body)
+      return nil if body.nil? || body.empty?
+      JSON.parse(body)
+    rescue JSON::ParserError
+      nil
     end
   end
 end

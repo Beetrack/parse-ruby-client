@@ -4,18 +4,28 @@ module Faraday
   #    1 - logs (on warn level) each retry attempt
   #    2 - stores in 'X-ParseRubyClient-Retries' header the number of
   #        remaining retries. Used in ExtendedParseJson middleware
-  class BetterRetry < Request::Retry
-    def initialize(app, options = nil)
-      @logger = options.delete(:logger) if options
+  class BetterRetry < Faraday::Middleware
+    def initialize(app, options = {})
+      super(app)
+      @logger = options.delete(:logger) if options.is_a?(Hash)
 
-      super(app, options)
+      default_options = {
+        max: 2,
+        interval: 0.05,
+        max_interval: 2,
+        interval_randomness: 0.5,
+        backoff_factor: 2,
+        exceptions: [],
+        methods: [:get, :post],
+        retry_statuses: [429],
+        retry_block: nil
+      }
 
-      # NOTE: Faraday 0.9.1 by default does not retry on POST requests
-      @options.methods << :post
+      @options = OpenStruct.new(default_options.merge(options || {}))
 
       # NOTE: the default exceptions are lost when custom ones are given
       default_exceptions = [
-        Errno::ETIMEDOUT, 'Timeout::Error', Error::TimeoutError]
+        Errno::ETIMEDOUT, Timeout::Error, Faraday::TimeoutError]
       @options.exceptions.concat(default_exceptions)
     end
 

@@ -10,7 +10,7 @@ require 'rubygems'
 require 'bundler/setup'
 
 require 'faraday'
-require 'faraday_middleware'
+require 'faraday/multipart'
 require 'faraday/better_retry'
 require 'faraday/extended_parse_json'
 require 'faraday/get_method_override'
