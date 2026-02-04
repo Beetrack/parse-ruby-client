@@ -11,3 +11,6 @@
 .DS_Store
 .env
 .byebug_history
+
+# Credentials - master keys should NOT be committed
+config/credentials/*.key
